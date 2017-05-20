@@ -76,5 +76,9 @@ public class Graph {
         return (visited[t] == true);
     }
 
+    public int getMaxFlow(){
+        return 0;
+    }
+
 
 }
