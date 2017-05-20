@@ -5,29 +5,50 @@ import java.util.LinkedList;
  */
 public class Graph {
 
-    int nodeCount; //Number of vertices in graph
-    int[][] graph;
-    int maxFlow;
-    int source, sink;
+    private int[][] graph;
+    private int[] parentNode;
+    private int nodeCount;
+    private int maxFlow;
+    private int source, sink;
+
 
     /**
-     * Create a graph.
+     * Creates a graph.
      * <p>
      * <b>source</b> is the first row
      * and <b>sink</b> is the last row of the matrix
      *
-     * @param graph: int matrix of the edge capacities to each node
+     * @param graph integer matrix of the edge capacities to each node <br>
+     *              <b>Example:</b> <br><br>
+     *              source -10-> node 1 <br>
+     *              source -15-> node 2 <br>
+     *              node 1 -8-> sink <br>
+     *              node 1 -4-> node 2 <br>
+     *              node 2 -19-> sink <br>
+     *              <p>
+     *              source: {0, 10, 15, 0} <br>
+     *              node 1: {0, 0, 4, 8} <br>
+     *              node 2: {0, 0, 0, 10} <br>
+     *              sink: {0, 0, 0, 0} <br>
      */
     public Graph(int[][] graph) {
         this.graph = graph;
         nodeCount = graph.length;
+        parentNode = new int[nodeCount];
         maxFlow = 0;
         source = 0;
         sink = nodeCount - 1;
     }
 
-
-    boolean findPath(int parentNode[]) {
+    /**
+     * Uses the BFS (breath first search) algorithm
+     * to determine a path from source-node to sink-node.
+     * <p>
+     * The resulting path is saved to the parentNode array.
+     *
+     * @return <b>true</b> if such a path exists and <b>false</b> if not.
+     */
+    private boolean findPath() {
         boolean visited[] = new boolean[nodeCount];
         LinkedList<Integer> queue = new LinkedList<>();
         int parent;
@@ -37,6 +58,7 @@ public class Graph {
         visited[source] = true;
         parentNode[source] = -1;
 
+        // Breath first search algorithm
         while (queue.size() != 0) {
             parent = queue.poll();
             for (int node = source; node < nodeCount; node++) {
@@ -51,7 +73,12 @@ public class Graph {
         return visited[sink];
     }
 
-    private int calculatePathFlow(int[] parentNode) {
+    /**
+     * Calculates the total flow of the path that is saved in the parentNode array.
+     *
+     * @return The flow of the path.
+     */
+    private int calculatePathFlow() {
         int flow = Integer.MAX_VALUE;
         int node = sink;
         while (node != source) {
@@ -62,7 +89,12 @@ public class Graph {
         return flow;
     }
 
-    private void updateGraph(int parentNode[], int flow) {
+    /**
+     * Updates the graph with the given flow value along the path which is saved in the parentNode array.
+     *
+     * @param flow The calculated flow value of the path in the parentNode array.
+     */
+    private void updateGraph(int flow) {
         int node = sink;
         while (node != source) {
             int parent = parentNode[node];
@@ -72,13 +104,18 @@ public class Graph {
         }
     }
 
-    int getMaxFlow() {
+    /**
+     * Used the Ford-Fulkerson algorithm to calculate the maximum flow of this graph.
+     *
+     * @return The maximum flow value.
+     */
+    public int getMaxFlow() {
         int flow;
-        int parentNode[] = new int[nodeCount];
 
-        while (findPath(parentNode)) {
-            flow = calculatePathFlow(parentNode);
-            updateGraph(parentNode, flow);
+        // loop as long as there exists a path from source to sink
+        while (findPath()) {
+            flow = calculatePathFlow();
+            updateGraph(flow);
             this.maxFlow += flow;
         }
         return this.maxFlow;
