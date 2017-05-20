@@ -5,7 +5,6 @@ import java.util.List;
  * Created by Lukas on 18.05.2017.
  */
 public class Node {
-    //List<Path> paths = new ArrayList<>();
     int id;
     static int count = 0;
 
