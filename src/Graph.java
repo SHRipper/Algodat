@@ -9,21 +9,28 @@ public class Graph {
     List<Path> pathList = new ArrayList<>();
     Node sink, source;
 
-
-    public Graph(List<Node> l){
-        this.nodeList = l;
+    public Graph(List<Node> nodes, List<Path> paths){
+        this.pathList = paths;
+        this.nodeList = nodes;
         for (Node n : nodeList){
             if (n.id == 0) this.source = n;
             if (n.id == Node.count -1) this.sink = n;
         }
     }
 
+    public void addPath(Path p){
+        this.pathList.add(p);
+    }
+
     public void addNode(Node n){
+        this.nodeList.add(n);
+
         if (n.id == 0 && source == null){
             this.source = n;
         }else{
             System.out.println("source already specified.");
         }
+
         if (n.id == Node.count -1 && sink == null){
             this.sink = n;
         }else{

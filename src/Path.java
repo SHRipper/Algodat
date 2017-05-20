@@ -9,10 +9,10 @@ public class Path {
     int capacity;
     Node start;
     Node end;
-    List<Path> allPaths = new ArrayList<>();
 
     public Path(Node start, Node end, int capacity){
         this.end = end;
+        this.start = start;
         flow = 0;
         this.capacity = capacity;
     }
