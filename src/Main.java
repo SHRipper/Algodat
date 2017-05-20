@@ -1,48 +1,31 @@
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 /**
- * Created by Lukas on 18.05.2017.
+ * Created by Lukas on 20.05.2017.
  */
 public class Main {
+    public static void main(String[] args) throws Exception {
+        // create a graph matrix
+        // numbers indicate capacities
 
-    public static void main(String[] args){
+        // source: source, node 1, node 2, sink
+        // node 1: source, node 1, node 2, sink
+        // node 2: source, node 1, node 2, sink
+        //   sink: source, node 1, node 2, sink
+        int graph[][] = new int[][]{
+                {0, 10, 15, 0}, // source
+                {0, 0, 4, 8},   // node 1
+                {0, 0, 0, 10},  // node 2
+                {0, 0, 0, 0}    // sink
+        };
+        // source -10-> node 1
+        // source -15-> node 2
+        // node 1 -8-> sink
+        // node 1 -4-> node2
+        // node 2 -19-> sink
 
-        // create Nodes
-        Node source = new Node(0);
-        Node n1 = new Node(1);
-        Node n2 = new Node(2);
-        Node sink = new Node(3);
-        System.out.println("node count = " + Node.count);
+        Graph g = new Graph(graph);
 
-        // create Node list
-        List<Node> nodeList = new ArrayList<>();
-        nodeList.add(source);
-        nodeList.add(n1);
-        nodeList.add(n2);
-        nodeList.add(sink);
+        System.out.println("maximaler Flow des Graphen: " + g.getMaxFlow());
 
-        // create Paths
-        Path p1 = Node.connect(source, n1,10);
-        Path p2 = Node.connect(source, n2,15);
-        Path p3 = Node.connect(n1, n2,4);
-        Path p4 = Node.connect(n1,sink,8);
-        Path p5 = Node.connect(n2,sink,10);
-
-        // create Path list
-        List<Path> pathList = new ArrayList<>();
-        pathList.add(p1);
-        pathList.add(p2);
-        pathList.add(p3);
-        pathList.add(p4);
-        pathList.add(p5);
-
-        // create the graph and calculate the max flow
-        Graph graph = new Graph(nodeList, pathList);
-        graph.getMaxFlow();
     }
-
-
 
 }

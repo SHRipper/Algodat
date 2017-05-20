@@ -1,98 +1,86 @@
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Created by Lukas on 20.05.2017.
  */
 public class Graph {
-    List<Node> nodeList = new ArrayList<>();
-    List<Path> pathList = new ArrayList<>();
-    Node sink, source;
-    private int maxFlow = 0;
 
-    public Graph(List<Node> nodes, List<Path> paths){
-        this.pathList = paths;
-        this.nodeList = nodes;
-        for (Node n : nodeList){
-            if (n.id == 0) this.source = n;
-            if (n.id == Node.count -1) this.sink = n;
-        }
+    int nodeCount; //Number of vertices in graph
+    int[][] graph;
+    int maxFlow;
+    int source, sink;
+
+    /**
+     * Create a graph.
+     * <p>
+     * <b>source</b> is the first row
+     * and <b>sink</b> is the last row of the matrix
+     *
+     * @param graph: int matrix of the edge capacities to each node
+     */
+    public Graph(int[][] graph) {
+        this.graph = graph;
+        nodeCount = graph.length;
+        maxFlow = 0;
+        source = 0;
+        sink = nodeCount - 1;
     }
 
-    public void addPath(Path p){
-        this.pathList.add(p);
-    }
 
-    public void addNode(Node n){
-        this.nodeList.add(n);
+    boolean findPath(int parentNode[]) {
+        boolean visited[] = new boolean[nodeCount];
+        LinkedList<Integer> queue = new LinkedList<>();
+        int parent;
 
-        if (n.id == 0 && source == null){
-            this.source = n;
-        }else{
-            System.out.println("source already specified.");
-        }
-
-        if (n.id == Node.count -1 && sink == null){
-            this.sink = n;
-        }else{
-            System.out.println("sink already specified.");
-        }
-    }
-
-    public List<Path> findPath()
-    {
-        boolean visited[] = new boolean[nodeList.size()];
-        List<Node> queue = new ArrayList<>();
+        // init
         queue.add(source);
-        visited[source.id] = true;
-        List<Path> pathToSink = new ArrayList<>();
-        boolean pathCreated = false;
+        visited[source] = true;
+        parentNode[source] = -1;
 
-        while (!pathCreated){
-            Node currentNode;
-            while ((currentNode = queue.get(queue.size()-1)) != sink){
-
-                queue.add(currentNode.connections.get(0).end);
-
+        while (queue.size() != 0) {
+            parent = queue.poll();
+            for (int node = source; node < nodeCount; node++) {
+                if (!visited[node] && graph[parent][node] > 0) {
+                    queue.add(node);
+                    parentNode[node] = parent;
+                    visited[node] = true;
+                }
             }
-
         }
 
-
-        Node endOfPath = pathToSink.get(pathToSink.size()-1).end;
-        if (endOfPath.compareTo(sink)){
-            return pathToSink;
-        }
-        return null;
+        return visited[sink];
     }
 
-    private int getFlowOf(List<Path> paths){
+    private int calculatePathFlow(int[] parentNode) {
         int flow = Integer.MAX_VALUE;
-        for (Path p : paths){
-            flow = Math.min(p.capacity - p.flow,flow);
+        int node = sink;
+        while (node != source) {
+            int parent = parentNode[node];
+            flow = Math.min(flow, graph[parent][node]);
+            node = parentNode[node];
         }
         return flow;
     }
 
-    private void updateFlow(List<Path> paths, int flow){
-        for (Path p : paths){
-            if (p.flow == p.capacity){
-                p.flow -= flow;
-            }else{
-                p.flow += flow;
-            }
+    private void updateGraph(int parentNode[], int flow) {
+        int node = sink;
+        while (node != source) {
+            int parent = parentNode[node];
+            graph[parent][node] -= flow;
+            graph[node][parent] += flow;
+            node = parentNode[node];
         }
     }
 
-    public int getMaxFlow(){
-        // loop for some times
-        List<Path> p = findPath();
-        int flow = getFlowOf(p);
-        updateFlow(p, flow);
-        this.maxFlow += flow;
-        return 0;
+    int getMaxFlow() {
+        int flow;
+        int parentNode[] = new int[nodeCount];
+
+        while (findPath(parentNode)) {
+            flow = calculatePathFlow(parentNode);
+            updateGraph(parentNode, flow);
+            this.maxFlow += flow;
+        }
+        return this.maxFlow;
     }
-
-
 }
