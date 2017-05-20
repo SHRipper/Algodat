@@ -58,7 +58,7 @@ public class Graph {
         // Standard BFS Loop
         while (queue.size()!=0)
         {
-            int u = queue.;
+            int u = queue.poll();
 
             for (int i=0; i<; i++)
             {
