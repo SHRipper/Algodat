@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -8,6 +9,7 @@ public class Graph {
     List<Node> nodeList = new ArrayList<>();
     List<Path> pathList = new ArrayList<>();
     Node sink, source;
+    private int maxFlow = 0;
 
     public Graph(List<Node> nodes, List<Path> paths){
         this.pathList = paths;
@@ -38,45 +40,57 @@ public class Graph {
         }
     }
 
-    public Path findPath()
+    public List<Path> findPath()
     {
-        /*
-        muss noch überarbeitet werden
-         */
-
         boolean visited[] = new boolean[nodeList.size()];
-        for(int i=0; i<nodeList.size(); ++i)
-            visited[i]=false;
+        List<Node> queue = new ArrayList<>();
+        queue.add(source);
+        visited[source.id] = true;
+        List<Path> pathToSink = new ArrayList<>();
+        boolean pathCreated = false;
 
-        // Create a queue, enqueue source vertex and mark
-        // source vertex as visited
-        List<Integer> queue = new ArrayList<>();
-        queue.add(s);
-        visited[s] = true;
-        parent[s]=-1;
+        while (!pathCreated){
+            Node currentNode;
+            while ((currentNode = queue.get(queue.size()-1)) != sink){
 
-        // Standard BFS Loop
-        while (queue.size()!=0)
-        {
-            int u = queue.poll();
+                queue.add(currentNode.connections.get(0).end);
 
-            for (int i=0; i<; i++)
-            {
-                if (visited[i]==false && rGraph[u][v] > 0)
-                {
-                    queue.add(i);
-                    parent[i] = u;
-                    visited[i] = true;
-                }
             }
+
         }
 
-        // If we reached sink in BFS starting from source, then
-        // return true, else false
-        return (visited[t] == true);
+
+        Node endOfPath = pathToSink.get(pathToSink.size()-1).end;
+        if (endOfPath.compareTo(sink)){
+            return pathToSink;
+        }
+        return null;
+    }
+
+    private int getFlowOf(List<Path> paths){
+        int flow = Integer.MAX_VALUE;
+        for (Path p : paths){
+            flow = Math.min(p.capacity - p.flow,flow);
+        }
+        return flow;
+    }
+
+    private void updateFlow(List<Path> paths, int flow){
+        for (Path p : paths){
+            if (p.flow == p.capacity){
+                p.flow -= flow;
+            }else{
+                p.flow += flow;
+            }
+        }
     }
 
     public int getMaxFlow(){
+        // loop for some times
+        List<Path> p = findPath();
+        int flow = getFlowOf(p);
+        updateFlow(p, flow);
+        this.maxFlow += flow;
         return 0;
     }
 

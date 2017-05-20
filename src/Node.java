@@ -1,6 +1,10 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class Node implements INodeCompare {
     int id;
     static int count = 0;
+    List<Path> connections = new ArrayList<>();
 
 
     public Node(int id){
@@ -9,8 +13,9 @@ public class Node implements INodeCompare {
     }
 
     public static Path connect(Node start, Node end, int capacity){
-        return new Path(start, end, capacity);
-
+        Path p = new Path(start, end, capacity);
+        start.connections.add(p);
+        return p;
     }
 
     /**

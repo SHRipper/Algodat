@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -37,7 +38,11 @@ public class Main {
         pathList.add(p4);
         pathList.add(p5);
 
+        // create the graph and calculate the max flow
         Graph graph = new Graph(nodeList, pathList);
-
+        graph.getMaxFlow();
     }
+
+
+
 }
