@@ -11,6 +11,9 @@ public class Graph {
     private int maxFlow;
     private int source, sink;
 
+    private int count;
+    private long startTime;
+
 
     /**
      * Creates a graph.
@@ -35,6 +38,7 @@ public class Graph {
         this.graph = graph;
         nodeCount = graph.length;
         parentNode = new int[nodeCount];
+        startTime = System.nanoTime();
         maxFlow = 0;
         source = 0;
         sink = nodeCount - 1;
@@ -114,10 +118,13 @@ public class Graph {
 
         // loop as long as there exists a path from source to sink
         while (findPath()) {
+            count++;
             flow = calculatePathFlow();
             updateGraph(flow);
             this.maxFlow += flow;
         }
+        System.out.println("count: " + count);
+        System.out.println("Laufzeit in ms: " + (System.nanoTime() - startTime) / 1000);
         return this.maxFlow;
     }
 }

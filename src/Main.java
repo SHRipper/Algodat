@@ -5,26 +5,35 @@ public class Main {
     public static void main(String[] args) throws Exception {
         // create a graph matrix
         // numbers indicate capacities
-
-        // source: source, node 1, node 2, sink
-        // node 1: source, node 1, node 2, sink
-        // node 2: source, node 1, node 2, sink
-        //   sink: source, node 1, node 2, sink
-        int graph[][] = new int[][]{
+        int adm1[][] = new int[][]{
                 {0, 10, 15, 0}, // source
                 {0, 0, 4, 8},   // node 1
                 {0, 0, 0, 10},  // node 2
                 {0, 0, 0, 0}    // sink
         };
-        // source -10-> node 1
-        // source -15-> node 2
-        // node 1 -8-> sink
-        // node 1 -4-> node2
-        // node 2 -19-> sink
 
-        Graph g = new Graph(graph);
+        int adm2[][] = new int[][]{
+                {0, 3, 0, 3, 0, 0, 0}, // a
+                {0, 0, 4, 0, 0, 0, 0},   // b
+                {3, 0, 0, 1, 2, 0, 0},  // c
+                {0, 0, 0, 0, 2, 6, 0},   // d
+                {0, 1, 0, 0, 0, 0, 1},   // e
+                {0, 0, 0, 0, 0, 0, 9}, // f
+                {0, 0, 0, 0, 0, 0, 0} // g
+        };
 
-        System.out.println("maximaler Flow des Graphen: " + g.getMaxFlow());
+        int adm3[][] = new int[][]{
+                {0, 4, 6, 0, 0, 0}, // s
+                {0, 0, 0, 3, 0, 0},   // 1
+                {0, 4, 0, 4, 3, 0},  // 2
+                {0, 0, 0, 0, 0, 7},   // 3
+                {0, 0, 0, 0, 0, 5},   // 4
+                {0, 0, 0, 0, 0, 0} // t
+        };
+
+        Graph g = new Graph(adm2);
+
+        System.out.println("Maximaler Flow des Graphen: " + g.getMaxFlow());
 
     }
 
