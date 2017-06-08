@@ -31,7 +31,19 @@ public class Main {
                 {0, 0, 0, 0, 0, 0} // t
         };
 
-        Graph g = new Graph(adm2);
+        int adm4[][] = new int[][]{
+                // a, b, d, h, f, j, s, t
+                {0, 10, 0, 0, 0, 0, 20, 0}, //a
+                {15, 0, 0, 0, 0, 0, 0, 5}, //b
+                {0, 0, 0, 10, 5, 0, 25, 0}, //d
+                {0, 0, 0, 0, 0, 5, 15, 0}, //h
+                {5, 15, 25, 0, 0, 0, 0, 0}, //f
+                {0, 0, 0, 15, 0, 0, 0, 5}, //j
+                {0, 0, 25, 5, 0, 0, 0, 0}, //s
+                {0, 0, 0, 0, 20, 25, 0, 0}  //t
+        };
+
+        Graph g = new Graph(adm4);
 
         System.out.println("Maximaler Flow des Graphen: " + g.getMaxFlow());
 
