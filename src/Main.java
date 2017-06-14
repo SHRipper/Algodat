@@ -1,8 +1,16 @@
+import java.util.Random;
+
 /**
  * Created by Lukas on 20.05.2017.
  */
 public class Main {
+    static int v;
+    static Random rnd;
+
     public static void main(String[] args) throws Exception {
+        rnd = new Random();
+        v = rnd.nextInt(200) + 1;
+
         // create a graph matrix
         // numbers indicate capacities
         int adm1[][] = new int[][]{
@@ -43,10 +51,11 @@ public class Main {
                 {0, 0, 0, 0, 20, 25, 0, 0}  //t
         };
 
-        Graph g = new Graph(adm4);
-
+        Graph g = new Graph();
+        g.print();
         System.out.println("Maximaler Flow des Graphen: " + g.getMaxFlow());
 
     }
+
 
 }
