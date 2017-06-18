@@ -5,12 +5,12 @@ import java.util.Random;
  * Created by Lukas on 20.05.2017.<br><br>
  * <p>
  * This class is used for creating a directed graph
- * with capacities and flows (optional) for each edge to calculate the maximum flow.
+ * with capacities and flows (optional) for each edge to calculate the maximum residual.
  */
 public class DirectedGraph {
 
     /**
-     * Capacity matrix of the directed graph.
+     * Adjacency matrix of the directed graph.
      * <br><br>
      * <b>Example:</b> <br><br>
      * source -10-> node 1 <br>
@@ -27,9 +27,9 @@ public class DirectedGraph {
     private int[][] capacity;
 
     /**
-     * Flow matrix of the directed graph.
+     * Matrix of the residual graph.
      */
-    private int[][] flow;
+    private int[][] residual;
 
     /**
      * The array which is used to backtrack the path from source to sink.
@@ -42,15 +42,24 @@ public class DirectedGraph {
     private int vertexCount;
 
     /**
-     * Maximum flow value of the directed graph.
+     * Maximum residual value of the directed graph.
      */
     private int maxFlow;
 
     private int source, sink;
 
     /**
+     * Indicates if the directed graph was initialized with a residual graph.
+     * Initially false.
+     * <p>
+     * If it was, then the calculated maximum flow is just the margin of which the
+     * flow of the graph could be increased to end up at the maximum.
+     */
+    private boolean hasInitFlow = false;
+
+    /**
      * Creates a directed graph with the given capacity matrix.
-     * The initial flow of each edge is zero.
+     * The initial residual of each edge is zero.
      * <p>
      * <b>source</b> is the first row
      * and <b>sink</b> is the last row of the matrix
@@ -64,24 +73,25 @@ public class DirectedGraph {
         maxFlow = 0;
         source = 0;
         sink = vertexCount - 1;
-        this.flow = new int[vertexCount][vertexCount];
+        this.residual = new int[vertexCount][vertexCount];
     }
 
     /**
      * Creates a directed graph with the given capacity matrix.
-     * The initial flow of each edge is determined by the given flow matrix.
+     * The initial flow of each edge is determined by the given residual matrix.
      *
      * @param capacity integer matrix of the edge capacity to each vertices
-     * @param flow     nteger matrix of the flow between the vertices
+     * @param residual     nteger matrix of the residual between the vertices
      */
-    public DirectedGraph(int[][] capacity, int[][] flow) {
+    public DirectedGraph(int[][] capacity, int[][] residual) {
         this(capacity);
-        this.flow = flow;
+        this.residual = residual;
+        this.hasInitFlow = true;
     }
 
     /**
      * Creates a graph with a random capacity matrix.
-     * The and initial flow for each edge is zero.
+     * The and initial residual for each edge is zero.
      *
      * @param vertexCount Value for how many vertices the created graph should have.
      *                    Has to be at least 3. If the given value is less than 3 the value is automatically set to 3.
@@ -96,7 +106,7 @@ public class DirectedGraph {
         maxFlow = 0;
         source = 0;
         sink = this.vertexCount - 1;
-        this.flow = new int[this.vertexCount][this.vertexCount];
+        this.residual = new int[this.vertexCount][this.vertexCount];
     }
 
     /**
@@ -179,13 +189,16 @@ public class DirectedGraph {
         // breadth first search algorithm
         while (queue.size() != 0) {
             parent = queue.poll();
+            if (parent == 2) {
+                parent = 2;
+            }
             for (int node = source; node < vertexCount; node++) {
 
                 // true for example: 2 -(10,10)-> 5, edge from 2 to 5 is full
                 //                   then the path from 5 to 2 is possible
                 // false otherwise
-                boolean reversePath_isFull = capacity[node][parent] > 0 && flow[parent][node] == capacity[node][parent];
-                boolean regularPath_notFull = capacity[parent][node] > 0 && flow[node][parent] < capacity[parent][node];
+                boolean reversePath_isFull = capacity[node][parent] > 0 && residual[parent][node] == capacity[node][parent];
+                boolean regularPath_notFull = capacity[parent][node] > 0 && residual[node][parent] < capacity[parent][node];
 
                 if (!visited[node] && (regularPath_notFull || reversePath_isFull)) {
                     queue.add(node);
@@ -198,22 +211,22 @@ public class DirectedGraph {
     }
 
     /**
-     * Calculates the total flow of the path that is saved in the parentNode array.
+     * Calculates the total residual of the path that is saved in the parentNode array.
      *
-     * @return The flow of the path.
+     * @return The residual of the path.
      */
     private int calculatePathFlow() {
         int flow = Integer.MAX_VALUE;
         int node = sink;
         while (node != source) {
             int parent = parentNode[node];
-            if (capacity[node][parent] - this.flow[parent][node] == 0) {
-                // edge was chosen against the direction of the capacity -> the flow can be the reverse capacity
-                // e.g. 2 -(15,15)-> 5 , then there can be a flow of 15 from 5 to 2
+            if (capacity[node][parent] > 0 && capacity[node][parent] - this.residual[parent][node] == 0) {
+                // edge was chosen against the direction of the capacity -> the residual can be the reverse capacity
+                // e.g. 2 -(15,15)-> 5 , then there can be a residual of 15 from 5 to 2
                 flow = Math.min(flow, capacity[node][parent]);
             } else {
                 // normal case
-                flow = Math.min(flow, capacity[parent][node] - this.flow[node][parent]);
+                flow = Math.min(flow, capacity[parent][node] - this.residual[node][parent]);
             }
             node = parentNode[node];
         }
@@ -221,28 +234,28 @@ public class DirectedGraph {
     }
 
     /**
-     * Updates the graph with the given flow value along the path which is saved in the parentNode array.
+     * Updates the graph with the given residual value along the path which is saved in the parentNode array.
      *
-     * @param flow The calculated flow value of the chosen path in the parentNode array.
+     * @param flow The calculated residual value of the chosen path in the parentNode array.
      */
     private void updateGraph(int flow) {
         int node = sink;
         while (node != source) {
             int parent = parentNode[node];
-            this.flow[parent][node] -= flow;
-            this.flow[node][parent] += flow;
+            this.residual[parent][node] -= flow;
+            this.residual[node][parent] += flow;
             node = parentNode[node];
         }
     }
 
     /**
-     * Uses the Ford-Fulkerson algorithm to calculate the maximum flow of this graph.
+     * Uses the Ford-Fulkerson algorithm to calculate the maximum residual of this graph.
      * Edmonds-Karp extension is used to determine the shortest path from source to sink
      * in every iteration with the breadth-first-search algorithm.
      *
-     * @return The maximum flow value for the graph.
+     * @return The maximum residual value for the graph.
      */
-    public int getMaxFlow() {
+    public void printMaxFlow() {
         int flow;
 
         // loop as long as there exists a path from source to sink
@@ -251,6 +264,17 @@ public class DirectedGraph {
             updateGraph(flow);
             this.maxFlow += flow;
         }
-        return this.maxFlow;
+
+        if (hasInitFlow) {
+            // The graph was initialized with a residual graph
+            // which makes this calculated max flow just the margin of which the
+            // flow could be increased.
+            System.out.printf("With the given residual graph," +
+                    " the flow of the graph could be increased by %s to end up as the maximum flow.\n", maxFlow);
+        } else {
+            // The graph was created just with a capacity matrix.
+            // The calculated max flow is indeed the maximum flow of the graph.
+            System.out.printf("The maximum flow of the given graph is %s\n", maxFlow);
+        }
     }
 }
