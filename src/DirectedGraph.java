@@ -4,8 +4,7 @@ import java.util.Random;
 /**
  * Created by Lukas on 20.05.2017.<br><br>
  * <p>
- * This class is used for creating a directed graph
- * with capacities and flows (optional) for each edge to calculate the maximum residual.
+ * This class is used for creating a directed graph.
  */
 public class DirectedGraph {
 
@@ -24,7 +23,7 @@ public class DirectedGraph {
      * node 2: {0, 0, 0, 10} <br>
      * sink: {0, 0, 0, 0} <br>
      */
-    private int[][] capacity;
+    private int[][] adjacency;
 
     /**
      * Matrix of the residual graph.
@@ -46,6 +45,9 @@ public class DirectedGraph {
      */
     private int maxFlow;
 
+    /**
+     * Stores the integer values of the source and sink node.
+     */
     private int source, sink;
 
     /**
@@ -57,40 +59,42 @@ public class DirectedGraph {
      */
     private boolean hasInitFlow = false;
 
+    public enum MatrixType {CAPACITY, RESIDUAL}
+
     /**
-     * Creates a directed graph with the given capacity matrix.
+     * Creates a directed graph with the given adjacency matrix.
      * The initial residual of each edge is zero.
      * <p>
      * <b>source</b> is the first row
      * and <b>sink</b> is the last row of the matrix
      *
-     * @param capacity Integer matrix of the edge capacities to each node <br>
+     * @param adjacency Integer matrix of the edge capacities to each node <br>
      */
-    public DirectedGraph(int[][] capacity) {
-        this.capacity = capacity;
-        vertexCount = capacity.length;
+    public DirectedGraph(int[][] adjacency) {
+        this.adjacency = adjacency;
+        vertexCount = adjacency.length;
         parentNode = new int[vertexCount];
         maxFlow = 0;
         source = 0;
         sink = vertexCount - 1;
-        this.residual = new int[vertexCount][vertexCount];
+        initializeResidualMatrix();
     }
 
     /**
-     * Creates a directed graph with the given capacity matrix.
+     * Creates a directed graph with the given adjacency matrix.
      * The initial flow of each edge is determined by the given residual matrix.
      *
-     * @param capacity integer matrix of the edge capacity to each vertices
-     * @param residual     nteger matrix of the residual between the vertices
+     * @param adjacency integer matrix of the edge adjacency to each vertices
+     * @param residual  integer matrix of the flow between the vertices
      */
-    public DirectedGraph(int[][] capacity, int[][] residual) {
-        this(capacity);
+    public DirectedGraph(int[][] adjacency, int[][] residual) {
+        this(adjacency);
         this.residual = residual;
         this.hasInitFlow = true;
     }
 
     /**
-     * Creates a graph with a random capacity matrix.
+     * Creates a graph with a random adjacency matrix.
      * The and initial residual for each edge is zero.
      *
      * @param vertexCount Value for how many vertices the created graph should have.
@@ -101,16 +105,28 @@ public class DirectedGraph {
             vertexCount = 3;
         }
         this.vertexCount = vertexCount;
-        this.capacity = generateRandomCapacityMatrix();
+        this.adjacency = generateRandomCapacityMatrix();
         parentNode = new int[this.vertexCount];
         maxFlow = 0;
         source = 0;
         sink = this.vertexCount - 1;
-        this.residual = new int[this.vertexCount][this.vertexCount];
+        initializeResidualMatrix();
     }
 
     /**
-     * Generates a random capacity matrix with a probablity of ~0.8 to create an edge between two vertices,
+     * Initializes the residual matrix by copying the values of the adjacency matrix
+     */
+    private void initializeResidualMatrix() {
+        this.residual = new int[vertexCount][vertexCount];
+        for (int i = 0; i < vertexCount; i++) {
+            for (int j = 0; j < vertexCount; j++) {
+                residual[i][j] = adjacency[i][j];
+            }
+        }
+    }
+
+    /**
+     * Generates a random adjacency matrix with a probablity of ~0.8 to create an edge between two vertices,
      * if the following conditions are met:<br>
      * <ul>
      * <li>There is no direct connection between source and sink.</li>
@@ -120,7 +136,7 @@ public class DirectedGraph {
      * <br>
      * If an edge between two vertices is created the capacity is chosen randomly out of [1,20].
      *
-     * @return The created capacity matrix.
+     * @return The created adjacency matrix.
      */
     private int[][] generateRandomCapacityMatrix() {
         Random rnd = new Random();
@@ -146,16 +162,31 @@ public class DirectedGraph {
     }
 
     /**
-     * Prints the capacity matrix of the graph to the console.
+     * Prints the chosen matrix of the graph to the console.
      * Each column is seperated by ','.
      * Each row starts with '{' and ends with '}',
      * so that it can be pasted as an array initialization somewhere else.
+     *
+     * @param type The type of the matrix that should be printed
      */
-    public void printCapacityMatrix() {
+    public void printMatrix(MatrixType type) {
+        int[][] matrix = {};
+        switch (type) {
+            case CAPACITY:
+                matrix = this.adjacency;
+                System.out.println("Adjacency Matrix:\n");
+                break;
+
+            case RESIDUAL:
+                matrix = this.residual;
+                System.out.println("Residual Matrix:\n");
+                break;
+        }
+
         for (int i = 0; i < vertexCount; i++) {
             System.out.print("{");
             for (int j = 0; j < vertexCount; j++) {
-                System.out.print(capacity[i][j]);
+                System.out.print(matrix[i][j]);
                 if (j != vertexCount - 1) System.out.print(", ");
             }
             if (i == vertexCount - 1) {
@@ -189,18 +220,15 @@ public class DirectedGraph {
         // breadth first search algorithm
         while (queue.size() != 0) {
             parent = queue.poll();
-            if (parent == 2) {
-                parent = 2;
-            }
             for (int node = source; node < vertexCount; node++) {
 
-                // true for example: 2 -(10,10)-> 5, edge from 2 to 5 is full
+                // true for example: 2 -(10,5)-> 5, edge from 2 to 5 is not empty
                 //                   then the path from 5 to 2 is possible
                 // false otherwise
-                boolean reversePath_isFull = capacity[node][parent] > 0 && residual[parent][node] == capacity[node][parent];
-                boolean regularPath_notFull = capacity[parent][node] > 0 && residual[node][parent] < capacity[parent][node];
+                boolean reversePath_notEmpty = adjacency[node][parent] > 0 && residual[parent][node] > 0;
+                boolean regularPath_notFull = adjacency[parent][node] > 0 && residual[node][parent] < adjacency[parent][node];
 
-                if (!visited[node] && (regularPath_notFull || reversePath_isFull)) {
+                if (!visited[node] && (regularPath_notFull || reversePath_notEmpty)) {
                     queue.add(node);
                     parentNode[node] = parent;
                     visited[node] = true;
@@ -211,22 +239,22 @@ public class DirectedGraph {
     }
 
     /**
-     * Calculates the total residual of the path that is saved in the parentNode array.
+     * Calculates the total flow of the path, that is saved in the parentNode array.
      *
-     * @return The residual of the path.
+     * @return The flow of the path.
      */
     private int calculatePathFlow() {
         int flow = Integer.MAX_VALUE;
         int node = sink;
         while (node != source) {
             int parent = parentNode[node];
-            if (capacity[node][parent] > 0 && capacity[node][parent] - this.residual[parent][node] == 0) {
-                // edge was chosen against the direction of the capacity -> the residual can be the reverse capacity
-                // e.g. 2 -(15,15)-> 5 , then there can be a residual of 15 from 5 to 2
-                flow = Math.min(flow, capacity[node][parent]);
+            if (adjacency[node][parent] > 0 && (adjacency[node][parent] - this.residual[parent][node]) >= 0) {
+                // edge was chosen against the direction of the edge -> the flow can be the reverse flow
+                // e.g. 2 -(15,10)-> 5 , then there can be a flow of 10 from 5 to 2
+                flow = Math.min(flow, residual[parent][node]);
             } else {
                 // normal case
-                flow = Math.min(flow, capacity[parent][node] - this.residual[node][parent]);
+                flow = Math.min(flow, adjacency[parent][node] - this.residual[node][parent]);
             }
             node = parentNode[node];
         }
@@ -234,9 +262,9 @@ public class DirectedGraph {
     }
 
     /**
-     * Updates the graph with the given residual value along the path which is saved in the parentNode array.
+     * Updates the graph with the given flow value along the path which is saved in the parentNode array.
      *
-     * @param flow The calculated residual value of the chosen path in the parentNode array.
+     * @param flow The calculated flow value of the chosen path in the parentNode array.
      */
     private void updateGraph(int flow) {
         int node = sink;
@@ -249,11 +277,11 @@ public class DirectedGraph {
     }
 
     /**
-     * Uses the Ford-Fulkerson algorithm to calculate the maximum residual of this graph.
+     * Uses the Ford-Fulkerson algorithm to calculate the maximum flow of this graph.
      * Edmonds-Karp extension is used to determine the shortest path from source to sink
      * in every iteration with the breadth-first-search algorithm.
      *
-     * @return The maximum residual value for the graph.
+     * The calculated value of the maximum flow is printed to the console.
      */
     public void printMaxFlow() {
         int flow;
@@ -270,11 +298,11 @@ public class DirectedGraph {
             // which makes this calculated max flow just the margin of which the
             // flow could be increased.
             System.out.printf("With the given residual graph," +
-                    " the flow of the graph could be increased by %s to end up as the maximum flow.\n", maxFlow);
+                    " the flow of the graph could be increased by %s to end up as the maximum flow.\n\n", maxFlow);
         } else {
-            // The graph was created just with a capacity matrix.
+            // The graph was created just with a adjacency matrix.
             // The calculated max flow is indeed the maximum flow of the graph.
-            System.out.printf("The maximum flow of the given graph is %s\n", maxFlow);
+            System.out.printf("The maximum flow of the given graph is %s\n\n", maxFlow);
         }
     }
 }
